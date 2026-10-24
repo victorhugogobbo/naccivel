@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Central NAC Cível</title>
+  <link rel="icon" href="https://drive.google.com/uc?export=view&id=1B5gjXXsyQcAstTN-el0CDXJji6NTLeTH&type=.png">
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #f5f7fa; }
+    iframe { display: block; width: 100%; height: 100%; border: 0; }
+  </style>
+</head>
+<body>
+  <iframe id="central" title="Central NAC Cível" allow="clipboard-write"></iframe>
+  <script>
+    // Endereço do aplicativo da web (Apps Script).
+    var APP = 'https://script.google.com/macros/s/AKfycbzI-iDaYAhLxIMtjbozqYYp6d3R3puS7gGh9b7_hIiFtPzruc217pZT5lQbA5w_HPCL_A/exec';
+
+    // naccivel.com.br/?p=aovivo abre direto o Painel ao vivo; sem nada, abre a Central.
+    var p = new URLSearchParams(location.search).get('p') || 'central';
+    document.getElementById('central').src = APP + '?p=' + encodeURIComponent(p);
+  </script>
+</body>
+</html>
