@@ -170,6 +170,8 @@ function desenhar() {
 }
 
 window.addEventListener('hashchange', desenhar);
+// "Voltar ao portal" dentro da Central (que abre em moldura aqui): ela avisa e a página volta ao início.
+window.addEventListener('message', function(e) { if (e.data === 'nac-voltar-portal') { location.hash = '#/'; } });
 desenhar();
 </script>
 </body>
