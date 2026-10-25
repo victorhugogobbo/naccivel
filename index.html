@@ -17,6 +17,8 @@
     .grade .acao { min-height:88px; }
     .grade .acao.compacto { min-height:0; padding-top:13px; padding-bottom:13px; }
     @media (max-width:640px){ .grade { grid-template-columns:1fr; } }
+    body.modo-central { overflow:hidden; }
+    iframe.central { position:fixed; top:0; left:0; width:100%; height:100%; border:0; background:#f5f7fa; z-index:10; }
     .voltar { display:inline-block; margin:0 0 4px; font-size:13px; color:#082542; text-decoration:none; font-weight:bold; }
     .voltar:hover { text-decoration:underline; }
     .vazio { grid-column:1/-1; color:#667085; font-size:14px; padding:18px 2px; }
@@ -128,10 +130,22 @@ function listaLinks(itens) {
   return itens.map(function(i) { return cartao(i.nome, '', i.url, { novaAba: true }); }).join('');
 }
 
+// A Central abre dentro do próprio portal (tela inteira), para o endereço naccivel.com.br não mudar.
+// Em celular/tablet o navegador bloqueia o login do Google dentro de moldura (erro 401): lá abre direto.
+function abrirCentral() {
+  if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) { location.replace(LINK_CENTRAL); return; }
+  document.body.classList.add('modo-central');
+  document.getElementById('tela').innerHTML = '<iframe class="central" src="' + esc(LINK_CENTRAL) + '" title="Central NAC Cível" allow="clipboard-write; clipboard-read"></iframe>';
+}
+
 function desenhar() {
   var rota = (location.hash || '').replace(/^#\/?/, '');
   var partes = rota.split('/');
   var h;
+
+  document.body.classList.remove('modo-central');
+
+  if (partes[0] === 'central') { abrirCentral(); return; }
 
   if (partes[0] === 'manuais') {
     h = paginaDrive('Manuais', 'manuais', '#/', 'Voltar ao portal');
@@ -143,11 +157,12 @@ function desenhar() {
     h = paginaDrive('Fluxogramas', '_areas', '#/', 'Voltar ao portal');
   } else {
     h = pagina('Portal de acesso', '', '',
-      cartao('Acessar Central NAC Cível', 'Central de trabalho e recursos operacionais em apoio ao Núcleo.', LINK_CENTRAL) +
+      cartao('Acessar Central NAC Cível', 'Central de trabalho e recursos operacionais em apoio ao Núcleo.', '#/central') +
+      cartao('Acessar PROJUDI', '', LINK_PROJUDI, { novaAba: true })) +
+      pagina('Material de apoio', '', '',
       cartao('Acessar manuais', 'Manuais de procedimentos de trabalho.', '#/manuais') +
-      cartao('Acessar fluxogramas', 'Fluxogramas de procedimentos processuais.', '#/fluxogramas') +
       cartao('Acessar orientações', 'Orientações de procedimentos de trabalho.', '#/orientacoes') +
-      cartao('Acessar PROJUDI', '', LINK_PROJUDI, { novaAba: true, compacto: true }));
+      cartao('Acessar fluxogramas', 'Fluxogramas de procedimentos processuais.', '#/fluxogramas'));
   }
 
   document.getElementById('tela').innerHTML = h;
