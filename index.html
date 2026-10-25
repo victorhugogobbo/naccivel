@@ -18,7 +18,19 @@
 
     // naccivel.com.br/?p=aovivo abre direto o Painel ao vivo; sem nada, abre a Central.
     var p = new URLSearchParams(location.search).get('p') || 'central';
-    document.getElementById('central').src = APP + '?p=' + encodeURIComponent(p);
+    var destino = APP + '?p=' + encodeURIComponent(p);
+
+    // iPhone/iPad (qualquer navegador) e Safari do Mac bloqueiam o login do Google dentro do quadro (erro 401).
+    // Nesses aparelhos, abre a Central direto, sem quadro.
+    var ua = navigator.userAgent;
+    var ehIOS = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
+    var ehSafariMac = /Safari/i.test(ua) && !/Chrome|Chromium|CriOS|FxiOS|Edg|OPR|Android/i.test(ua);
+
+    if (ehIOS || ehSafariMac) {
+      location.replace(destino);
+    } else {
+      document.getElementById('central').src = destino;
+    }
   </script>
 </body>
 </html>
