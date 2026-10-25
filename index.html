@@ -131,9 +131,11 @@ function listaLinks(itens) {
 }
 
 // A Central abre dentro do próprio portal (tela inteira), para o endereço naccivel.com.br não mudar.
-// Em celular/tablet o navegador bloqueia o login do Google dentro de moldura (erro 401): lá abre direto.
+// Firefox, Safari e celulares/tablets bloqueiam os cookies do Google dentro de moldura (erro 401): nesses abre direto.
 function abrirCentral() {
-  if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) { location.replace(LINK_CENTRAL); return; }
+  var ua = navigator.userAgent;
+  var chromium = /Chrome|Chromium|CriOS|Edg\//.test(ua) && !/FxiOS|Firefox/.test(ua);
+  if (!chromium || /iPhone|iPad|iPod|Android|Mobile/i.test(ua)) { location.replace(LINK_CENTRAL); return; }
   document.body.classList.add('modo-central');
   document.getElementById('tela').innerHTML = '<iframe class="central" src="' + esc(LINK_CENTRAL) + '" title="Central NAC Cível" allow="clipboard-write; clipboard-read"></iframe>';
 }
