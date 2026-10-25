@@ -18,8 +18,15 @@
     .grade .acao.compacto { min-height:0; padding-top:13px; padding-bottom:13px; }
     @media (max-width:640px){ .grade { grid-template-columns:1fr; } }
     body.modo-central { overflow:hidden; }
-    .falha-central { position:fixed; left:50%; bottom:16px; transform:translateX(-50%); z-index:20; max-width:calc(100% - 24px); background:#082542; color:#fff; border-radius:12px; padding:12px 16px; font-size:13px; line-height:1.5; box-shadow:0 4px 16px rgba(0,0,0,.35); text-align:center; }
-    .falha-central a { color:#ffd86b; font-weight:bold; }
+    .falha-central { position:fixed; inset:0; z-index:20; background:#f5f7fa; overflow:auto; display:flex; flex-direction:column; }
+    .falha-central .topo { margin-top:16px; flex:none; }
+    .falha-central .miolo { flex:1; width:100%; max-width:900px; margin:0 auto; padding:34px 18px 10px; text-align:center; }
+    .falha-central .miolo h3 { margin:0 0 8px; font-size:20px; color:#082542; }
+    .falha-central .miolo p { margin:0 auto 18px; max-width:560px; color:#475467; font-size:14px; line-height:1.6; }
+    .falha-central .entrar { display:inline-block; background:#082542; color:#fff; font-weight:bold; font-size:15px; padding:13px 26px; border-radius:10px; text-decoration:none; }
+    .falha-central .entrar:hover { background:#0d3560; }
+    .falha-central .sec { display:block; margin-top:16px; color:#082542; font-size:13px; font-weight:bold; text-decoration:none; }
+    .falha-central .sec:hover { text-decoration:underline; }
     iframe.central { position:fixed; top:0; left:0; width:100%; height:100%; border:0; background:#f5f7fa; z-index:10; }
     .voltar { display:inline-block; margin:0 0 4px; font-size:13px; color:#082542; text-decoration:none; font-weight:bold; }
     .voltar:hover { text-decoration:underline; }
@@ -141,13 +148,19 @@ function abrirCentral() {
   if (!chromium || /iPhone|iPad|iPod|Android|Mobile/i.test(ua)) { location.replace(LINK_CENTRAL); return; }
   document.body.classList.add('modo-central');
   document.getElementById('tela').innerHTML = '<iframe class="central" src="' + esc(LINK_CENTRAL) + '" title="Central NAC Cível" allow="clipboard-write; clipboard-read"></iframe>' +
-    '<div class="falha-central" id="falhaCentral" style="display:none">A Central não carregou aqui (acontece quando não há login do Google neste navegador). ' +
-    '<a href="' + esc(LINK_CENTRAL) + '">Abrir a Central em tela cheia</a> &nbsp;·&nbsp; <a href="#/">Voltar ao portal</a></div>';
+    '<div class="falha-central" id="falhaCentral" style="display:none"></div>';
   CENTRAL_OK = false;
   clearTimeout(TEMPO_CENTRAL);
   TEMPO_CENTRAL = setTimeout(function() {
     var f = document.getElementById('falhaCentral');
-    if (f && !CENTRAL_OK) f.style.display = 'block';
+    if (!f || CENTRAL_OK) return;
+    var topo = document.querySelector('.topo'), rodape = document.querySelector('.rodape');
+    f.innerHTML = (topo ? topo.outerHTML : '') +
+      '<div class="miolo"><h3>Entre com a sua conta Google para acessar a Central</h3>' +
+      '<p>A Central precisa de uma conta Google conectada neste navegador e liberada pelos gestores. Clique abaixo para entrar; se a conta tiver acesso, a Central abre normalmente.</p>' +
+      '<a class="entrar" href="' + esc(LINK_CENTRAL) + '">Entrar na Central</a>' +
+      '<a class="sec" href="#/">‹ Voltar ao portal</a></div>' + (rodape ? rodape.outerHTML : '');
+    f.style.display = 'flex';
   }, 6000);
 }
 
