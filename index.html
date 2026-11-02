@@ -45,6 +45,32 @@
     .acao::after { content:"\203A"; position:absolute; right:18px; top:50%; transform:translateY(-50%); font-size:26px; font-weight:normal; color:#aebdcd; }
     .aviso { margin:14px 2px 0; font-size:12px; line-height:1.5; color:#667085; }
     .rodape { width:100%; max-width:900px; margin:28px auto 0; padding:14px 18px 22px; border-top:3px solid #d7b14a; text-align:center; color:#667085; font-size:12px; line-height:1.6; }
+    .pcard { background:#fff; border:1px solid #d9e0ea; border-radius:9px; padding:16px 18px; }
+    .pcard .vazio { padding:6px 2px; }
+    .fer-lista { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+    @media (max-width:760px){ .fer-lista { grid-template-columns:1fr 1fr; } }
+    .fer-it { border:1px solid #e3e8ef; border-radius:8px; padding:10px 12px; background:#fafbfd; }
+    .fer-it.hoje { background:#fff4d6; border-color:#ecd48a; }
+    .fer-it .fd { font-size:12px; color:#8a6918; font-weight:bold; text-transform:uppercase; letter-spacing:.4px; }
+    .fer-it .fn { font-size:14px; font-weight:bold; color:#082542; margin-top:3px; line-height:1.3; }
+    .fer-it .fq { font-size:12px; color:#667085; margin-top:3px; }
+    .pr-topo { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+    .pr-topo b { font-size:15px; color:#082542; }
+    .pr-topo select { border:1px solid #cfd6e1; border-radius:7px; padding:7px 10px; font-size:13px; background:#fff; color:#172033; }
+    .pr-nums { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
+    .pr-num { background:#f4f7fc; border:1px solid #e3e8ef; border-radius:8px; padding:9px 12px; }
+    .pr-num b { display:block; font-size:20px; color:#082542; }
+    .pr-num span { font-size:11.5px; color:#667085; }
+    .barras { display:flex; align-items:flex-end; gap:4px; height:176px; padding-top:6px; border-bottom:1px solid #e3e8ef; }
+    .barra { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; }
+    .barra .bv { font-size:10px; color:#475467; margin-bottom:3px; }
+    .barra .bb { width:100%; max-width:34px; background:#2f5d9e; border-radius:4px 4px 0 0; }
+    .barra.andamento .bb { background:repeating-linear-gradient(45deg,#8fb0dc,#8fb0dc 5px,#b4cbe8 5px,#b4cbe8 10px); }
+    .barra.maior .bb { background:#c9a227; }
+    .dias { display:flex; gap:4px; margin-top:4px; }
+    .dias span { flex:1; min-width:0; text-align:center; font-size:10px; color:#667085; }
+    .pr-rodape { margin-top:10px; font-size:11.5px; color:#667085; }
+    @media (max-width:640px){ .barra .bv { display:none; } .pr-nums { grid-template-columns:1fr 1fr 1fr; } .pr-num b { font-size:16px; } }
   </style>
 </head>
 <body>
@@ -167,6 +193,130 @@ function abrirCentral() {
   }, 3000);
 }
 
+/* ===================== CARTÕES DO PORTAL: feriados e processos finalizados ===================== */
+var DADOS_PORTAL = null, ESTADO_PORTAL = '', MES_SEL = '', TIMER_PORTAL = 0;
+var NOMES_MES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+var DIAS_SEM = ['dom','seg','ter','qua','qui','sex','sáb'];
+function p2(n) { return ('0' + n).slice(-2); }
+function isoDe(d) { return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()); }
+function fmt(n) { return Number(n || 0).toLocaleString('pt-BR'); }
+function dataDeIso(iso) { var p = iso.split('-'); return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]), 12, 0, 0); }
+
+function pascoa(ano) {
+  var a = ano % 19, b = Math.floor(ano / 100), c = ano % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+  var g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4;
+  var l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  var mes = Math.floor((h + l - 7 * m + 114) / 31), dia = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(ano, mes - 1, dia, 12, 0, 0);
+}
+function feriadosNacionais(ano) {
+  var p = pascoa(ano);
+  var mais = function(n) { return isoDe(new Date(ano, p.getMonth(), p.getDate() + n, 12, 0, 0)); };
+  var f = function(m, d) { return ano + '-' + p2(m) + '-' + p2(d); };
+  var l = [
+    { d: f(1, 1), n: 'Confraternização Universal' }, { d: mais(-48), n: 'Carnaval (segunda)' }, { d: mais(-47), n: 'Carnaval (terça)' },
+    { d: mais(-2), n: 'Sexta-feira Santa' }, { d: f(4, 21), n: 'Tiradentes' }, { d: f(5, 1), n: 'Dia do Trabalho' },
+    { d: mais(60), n: 'Corpus Christi' }, { d: f(9, 7), n: 'Independência do Brasil' }, { d: f(10, 12), n: 'Nossa Senhora Aparecida' },
+    { d: f(11, 2), n: 'Finados' }, { d: f(11, 15), n: 'Proclamação da República' }, { d: f(12, 25), n: 'Natal' }
+  ];
+  if (ano >= 2024) l.push({ d: f(11, 20), n: 'Consciência Negra' });
+  return l;
+}
+// Nacionais calculados aqui + os da aba FERIADOS da Central (inclui os locais). O nome da Central vale.
+function listaFeriados() {
+  var ano = new Date().getFullYear(), mapa = {};
+  feriadosNacionais(ano).concat(feriadosNacionais(ano + 1)).forEach(function(f) { mapa[f.d] = f.n; });
+  ((DADOS_PORTAL && DADOS_PORTAL.feriados) || []).forEach(function(f) { if (f.d) mapa[f.d] = f.n || mapa[f.d] || 'Feriado'; });
+  return Object.keys(mapa).sort().map(function(d) { return { d: d, n: mapa[d] }; });
+}
+function desenharFeriados() {
+  var alvo = document.getElementById('cartaoFeriados'); if (!alvo) return;
+  var hoje = isoDe(new Date()), base = dataDeIso(hoje);
+  var prox = listaFeriados().filter(function(f) { return f.d >= hoje; }).slice(0, 4);
+  alvo.innerHTML = '<div class="fer-lista">' + prox.map(function(f) {
+    var dt = dataDeIso(f.d), dias = Math.round((dt - base) / 86400000);
+    var quando = dias === 0 ? 'Hoje' : (dias === 1 ? 'Amanhã' : 'Em ' + dias + ' dias');
+    return '<div class="fer-it' + (dias === 0 ? ' hoje' : '') + '"><div class="fd">' + DIAS_SEM[dt.getDay()] + ', ' + p2(dt.getDate()) + '/' + p2(dt.getMonth() + 1) + '</div><div class="fn">' + esc(f.n) + '</div><div class="fq">' + quando + '</div></div>';
+  }).join('') + '</div>';
+}
+
+function desenharProducao() {
+  var alvo = document.getElementById('cartaoProducao'); if (!alvo) return;
+  if (!DADOS_PORTAL) {
+    alvo.innerHTML = '<div class="vazio">' + (ESTADO_PORTAL === 'erro' ? 'Os números não estão disponíveis no momento.' : 'Carregando...') + '</div>';
+    return;
+  }
+  var dias = DADOS_PORTAL.dias || {};
+  var meses = {};
+  Object.keys(dias).forEach(function(d) { meses[d.slice(0, 7)] = true; });
+  var atual = isoDe(new Date()).slice(0, 7);
+  meses[atual] = true;
+  var lista = Object.keys(meses).sort().reverse();
+  if (!MES_SEL || !meses[MES_SEL]) MES_SEL = atual;
+  var rot = function(m) { var p = m.split('-'); var n = NOMES_MES[Number(p[1]) - 1]; return n.charAt(0).toUpperCase() + n.slice(1) + ' de ' + p[0]; };
+
+  var hoje = isoDe(new Date()), hora = new Date().getHours();
+  var doMes = Object.keys(dias).filter(function(d) { return d.slice(0, 7) === MES_SEL; }).sort();
+  var total = 0, maior = 0, cobrados = 0, maxDia = '';
+  doMes.forEach(function(d) {
+    var v = dias[d]; total += v;
+    if (v > maior) { maior = v; maxDia = d; }
+    if (!(d === hoje && hora < 18)) cobrados++;
+  });
+  var somaCobrada = doMes.reduce(function(t, d) { return t + ((d === hoje && hora < 18) ? 0 : dias[d]); }, 0);
+  var media = cobrados ? Math.round(somaCobrada / cobrados) : 0;
+
+  var h = '<div class="pr-topo"><b>Total finalizado por dia</b><select onchange="trocarMes(this.value)">' +
+    lista.map(function(m) { return '<option value="' + m + '"' + (m === MES_SEL ? ' selected' : '') + '>' + rot(m) + '</option>'; }).join('') + '</select></div>';
+
+  if (!doMes.length) {
+    h += '<div class="vazio">Sem registros neste mês.</div>';
+  } else {
+    h += '<div class="pr-nums"><div class="pr-num"><b>' + fmt(total) + '</b><span>Total do mês</span></div>' +
+      '<div class="pr-num"><b>' + fmt(media) + '</b><span>Média por dia útil</span></div>' +
+      '<div class="pr-num"><b>' + fmt(maior) + '</b><span>Maior dia (' + p2(dataDeIso(maxDia).getDate()) + '/' + p2(dataDeIso(maxDia).getMonth() + 1) + ')</span></div></div>';
+    h += '<div class="barras">' + doMes.map(function(d) {
+      var v = dias[d], alt = Math.max(4, Math.round(v / maior * 130));
+      var and = d === hoje && hora < 18;
+      var dt = dataDeIso(d);
+      return '<div class="barra' + (d === maxDia ? ' maior' : '') + (and ? ' andamento' : '') + '" title="' + p2(dt.getDate()) + '/' + p2(dt.getMonth() + 1) + ': ' + fmt(v) + (and ? ' (em andamento)' : '') + '"><span class="bv">' + fmt(v) + '</span><div class="bb" style="height:' + alt + 'px"></div></div>';
+    }).join('') + '</div>';
+    h += '<div class="dias">' + doMes.map(function(d) { return '<span>' + Number(d.slice(8, 10)) + '</span>'; }).join('') + '</div>';
+  }
+  var hh = (DADOS_PORTAL.atualizado || '').slice(11, 16);
+  h += '<div class="pr-rodape">Soma da equipe, sem nomes. Dias úteis com produção' + (hh ? ' · atualizado às ' + hh : '') + (hora < 18 && doMes.indexOf(hoje) >= 0 ? ' · o dia de hoje está em andamento' : '') + '.</div>';
+  alvo.innerHTML = h;
+}
+function trocarMes(m) { MES_SEL = m; desenharProducao(); }
+
+function carregarPortal() {
+  if (!URL_FLUXOGRAMAS) { ESTADO_PORTAL = 'erro'; desenharProducao(); return; }
+  var nome = 'portalCb' + Date.now();
+  var tag = document.createElement('script');
+  var fim = function(ok, dados) {
+    clearTimeout(tempo);
+    delete window[nome];
+    if (tag.parentNode) tag.parentNode.removeChild(tag);
+    if (ok) { DADOS_PORTAL = dados; ESTADO_PORTAL = ''; } else if (!DADOS_PORTAL) { ESTADO_PORTAL = 'erro'; }
+    desenharProducao(); desenharFeriados();
+  };
+  var tempo = setTimeout(function() { fim(false); }, 20000);
+  window[nome] = function(dados) { fim(!!dados && !dados.erro && !!dados.dias, dados); };
+  tag.onerror = function() { fim(false); };
+  tag.src = URL_FLUXOGRAMAS + (URL_FLUXOGRAMAS.indexOf('?') < 0 ? '?' : '&') + 'dados=portal&callback=' + nome;
+  document.head.appendChild(tag);
+}
+function iniciarCartoesHome() {
+  desenharFeriados();
+  desenharProducao();
+  carregarPortal();
+  clearInterval(TIMER_PORTAL);
+  TIMER_PORTAL = setInterval(function() {
+    var h = location.hash || '';
+    if (h === '' || h === '#' || h === '#/') carregarPortal();
+  }, 300000);   // a cada 5 minutos, enquanto o portal estiver aberto na tela inicial
+}
+
 function desenhar() {
   var rota = (location.hash || '').replace(/^#\/?/, '');
   var partes = rota.split('/');
@@ -191,11 +341,14 @@ function desenhar() {
       pagina('Material de apoio', '', '',
       cartao('Acessar manuais', 'Manuais de procedimentos de trabalho.', '#/manuais') +
       cartao('Acessar orientações', 'Orientações de procedimentos de trabalho.', '#/orientacoes') +
-      cartao('Acessar fluxogramas', 'Fluxogramas de procedimentos processuais.', '#/fluxogramas'));
+      cartao('Acessar fluxogramas', 'Fluxogramas de procedimentos processuais.', '#/fluxogramas')) +
+      '<h2>Próximos feriados</h2><div id="cartaoFeriados" class="pcard"></div>' +
+      '<h2>Processos finalizados pela equipe</h2><div id="cartaoProducao" class="pcard"><div class="vazio">Carregando...</div></div>';
   }
 
   document.getElementById('tela').innerHTML = h;
   window.scrollTo(0, 0);
+  if (!partes[0]) iniciarCartoesHome();
 }
 
 window.addEventListener('hashchange', desenhar);
