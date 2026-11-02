@@ -31,8 +31,10 @@
     .falha-central .sec { display:block; margin-top:16px; color:#082542; font-size:13px; font-weight:bold; text-decoration:none; }
     .falha-central .sec:hover { text-decoration:underline; }
     iframe.central { position:fixed; top:0; left:0; width:100%; height:100%; border:0; background:#f5f7fa; z-index:10; }
-    .voltar { position:fixed; left:12px; bottom:12px; z-index:99999; background:#082542; color:#fff; font:700 12px Arial,sans-serif; padding:9px 13px; border-radius:999px; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,.3); }
+    .voltar { background:#082542; color:#fff; font:700 12px Arial,sans-serif; padding:9px 13px; border-radius:999px; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,.3); }
     .voltar:hover, .voltar:focus { background:#0d3560; outline:none; }
+    .voltar-topo { display:inline-block; margin:0 0 4px; }
+    .voltar-fixo { position:fixed; left:12px; bottom:12px; z-index:99999; }
     .vazio { grid-column:1/-1; color:#667085; font-size:14px; padding:18px 2px; }
     .acao.bloqueado { cursor:not-allowed; background:#f1f4f8; border-style:dashed; color:#667085; }
     .acao.bloqueado:hover { background:#f1f4f8; border-color:#d9e0ea; }
@@ -112,7 +114,8 @@ function cartao(nome, desc, href, opcoes) {
 
 function pagina(titulo, voltarPara, voltarTexto, cartoes) {
   var h = '';
-  if (voltarPara) h += '<a class="voltar" href="' + voltarPara + '">‹ ' + esc(voltarTexto) + '</a>';
+  if (voltarPara) h += '<a class="voltar voltar-topo" href="' + voltarPara + '">‹ ' + esc(voltarTexto) + '</a>' +
+    '<a class="voltar voltar-fixo" href="' + voltarPara + '">‹ ' + esc(voltarTexto) + '</a>';
   h += '<h2>' + esc(titulo) + '</h2><div class="grade">' + (cartoes || '<div class="vazio">Nada cadastrado ainda.</div>') + '</div>';
   return h;
 }
