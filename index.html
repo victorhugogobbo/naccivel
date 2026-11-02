@@ -283,8 +283,10 @@ function desenharProducao() {
     }).join('') + '</div>';
     h += '<div class="dias">' + doMes.map(function(d) { return '<span>' + Number(d.slice(8, 10)) + '</span>'; }).join('') + '</div>';
   }
-  var hh = (DADOS_PORTAL.atualizado || '').slice(11, 16);
-  h += '<div class="pr-rodape">Soma da equipe, sem nomes. Dias úteis com produção' + (hh ? ' · atualizado às ' + hh : '') + (hora < 18 && doMes.indexOf(hoje) >= 0 ? ' · o dia de hoje está em andamento' : '') + '.</div>';
+  var at = DADOS_PORTAL.atualizado || '';
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(at)) {
+    h += '<div class="pr-rodape">Atualizado em ' + at.slice(8, 10) + '/' + at.slice(5, 7) + '/' + at.slice(0, 4) + ' às ' + at.slice(11, 16) + '</div>';
+  }
   alvo.innerHTML = h;
 }
 function trocarMes(m) { MES_SEL = m; desenharProducao(); }
