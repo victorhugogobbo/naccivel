@@ -43,6 +43,9 @@
     .acao.externo::after { content:"\2197"; font-size:18px; }
     .acao { display:block; position:relative; border:1px solid #d9e0ea; background:#fff; border-radius:9px; padding:16px 46px 16px 18px; color:#082542; font-weight:bold; font-size:15px; text-decoration:none; }
     .acao:hover, .acao:focus { background:#f5f8fc; border-color:#aebdcd; outline:none; }
+    .acao.destaque { background:#082542; border-color:#082542; border-bottom:4px solid #d7b14a; color:#fff; font-size:19px; letter-spacing:.2px; display:flex; align-items:center; box-shadow:0 4px 14px rgba(8,37,66,.28); transition:transform .12s, box-shadow .12s, background .12s; }
+    .acao.destaque:hover, .acao.destaque:focus { background:#0b3159; border-color:#0b3159; border-bottom-color:#d7b14a; transform:translateY(-1px); box-shadow:0 6px 18px rgba(8,37,66,.34); }
+    .acao.destaque::after { color:#d7b14a; font-size:30px; font-weight:bold; }
     .acao span { display:block; margin-top:5px; font-weight:normal; font-size:12px; line-height:1.4; color:#667085; }
     .acao::after { content:"\203A"; position:absolute; right:18px; top:50%; transform:translateY(-50%); font-size:26px; font-weight:normal; color:#aebdcd; }
     .aviso { margin:14px 2px 0; font-size:12px; line-height:1.5; color:#667085; }
@@ -107,7 +110,7 @@ function esc(t) { return String(t).replace(/[&<>"]/g, function(c) { return {'&':
 function cartao(nome, desc, href, opcoes) {
   opcoes = opcoes || {};
   var alvo = opcoes.novaAba ? ' target="_blank" rel="noopener noreferrer"' : '';
-  var cls = 'acao' + (opcoes.novaAba ? ' externo' : '') + (opcoes.compacto ? ' compacto' : '');
+  var cls = 'acao' + (opcoes.novaAba ? ' externo' : '') + (opcoes.compacto ? ' compacto' : '') + (opcoes.destaque ? ' destaque' : '');
   return '<a class="' + cls + '" href="' + esc(href) + '"' + alvo + '>' + esc(nome) +
     (desc ? '<span>' + esc(desc) + '</span>' : '') + '</a>';
 }
@@ -341,7 +344,7 @@ function desenhar() {
     h = paginaDrive('Fluxogramas', '_areas', '#/', 'Voltar ao portal');
   } else {
     h = pagina('Portal de acesso', '', '',
-      cartao('Acessar Central NAC Cível', 'Central de trabalho e recursos operacionais em apoio ao Núcleo.', '#/central') +
+      cartao('Acessar Central', '', '#/central', { destaque: true }) +
       cartao('Acessar PROJUDI', '', LINK_PROJUDI, { novaAba: true })) +
       pagina('Material de apoio', '', '',
       cartao('Acessar manuais', 'Manuais de procedimentos de trabalho.', '#/manuais') +
