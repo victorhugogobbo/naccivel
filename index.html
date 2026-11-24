@@ -232,8 +232,7 @@ var CENTRAL_OK = false, TEMPO_CENTRAL = 0;
 // Firefox, Safari e celulares/tablets bloqueiam os cookies do Google dentro de moldura (erro 401): nesses abre direto.
 function abrirCentral() {
   var ua = navigator.userAgent;
-  var chromium = /Chrome|Chromium|CriOS|Edg\//.test(ua) && !/FxiOS|Firefox/.test(ua);
-  if (!chromium || /iPhone|iPad|iPod|Android|Mobile/i.test(ua)) { location.replace(LINK_CENTRAL); return; }
+  if (entradaModo() !== 'sim') { location.replace(LINK_CENTRAL); return; }
   document.body.classList.add('modo-central');
   document.getElementById('tela').innerHTML = '<iframe class="central" src="' + esc(LINK_CENTRAL) + '" title="Central NAC Cível" allow="clipboard-write; clipboard-read"></iframe>' +
     '<div class="falha-central" id="falhaCentral" style="display:none"></div>';
@@ -250,6 +249,143 @@ function abrirCentral() {
       '<a class="sec" href="#/">‹ Voltar ao portal</a></div>' + (rodape ? rodape.outerHTML : '');
     f.style.display = 'flex';
   }, 3000);
+}
+
+/* ===================== JANELA DE ENTRADA ===================== */
+// "Entrar na Central" abre uma janela com CPF e senha NA HORA. Em segundo plano o portal confere se já há acesso neste navegador
+// (proprietário ou sessão válida): se houver, a janela fecha e a Central abre direto.
+// Modos de envio: 'sim' = Chrome/Edge (envio numa moldura invisível, Central abre dentro do portal);
+// 'nao' = celular ou navegador que o Google bloqueia na moldura (envio navega direto para a Central já logada);
+// 'tentar' = primeiro uso no Firefox/Safari do computador (confere em segundo plano e passa a 'nao' sem avisar).
+var ENTRADA = { fase: '', tempo: 0, cpf: '', modo: 'nao', verificando: false };
+
+function entradaModo() {
+  var ua = navigator.userAgent;
+  if (/iPhone|iPad|iPod|Android|Mobile/i.test(ua)) return 'nao';
+  if (/Chrome|Chromium|CriOS|Edg\//.test(ua) && !/FxiOS|Firefox/.test(ua)) return 'sim';
+  try { var m = localStorage.getItem('nacMoldura'); if (m === 'sim' || m === 'nao') return m; } catch (e) {}
+  return 'tentar';
+}
+function lembrarMoldura(v) { try { localStorage.setItem('nacMoldura', v); } catch (e) {} }
+
+// Sem moldura não dá para conferir o acesso: quem entrou há menos de 1 hora vai direto à Central, que confirma a sessão.
+function marcarAcesso() { try { localStorage.setItem('nacAcessoEm', String(Date.now())); } catch (e) {} }
+function acessoRecente() { try { return Date.now() - Number(localStorage.getItem('nacAcessoEm') || 0) < 3600000; } catch (e) { return false; } }
+
+function janelaEntrada() {
+  var j = document.getElementById('janEntrada');
+  if (j) return j;
+  j = document.createElement('div');
+  j.id = 'janEntrada'; j.className = 'veu';
+  j.setAttribute('onclick', 'if(event.target===this)fecharEntrada()');
+  j.innerHTML = '<div class="jan" role="dialog" aria-modal="true" aria-label="Entrar na Central">' +
+    '<div class="jan-top"><b>Entrar na Central</b><button type="button" class="jan-x" onclick="fecharEntrada()" aria-label="Fechar">×</button></div>' +
+    '<div class="jan-corpo" id="janEntradaCorpo"></div></div>';
+  document.body.appendChild(j);
+  return j;
+}
+
+function limparEntrada() {
+  clearTimeout(ENTRADA.tempo);
+  ['nacChkFrame', 'nacLoginFrame', 'nacLoginForm'].forEach(function(id) { var x = document.getElementById(id); if (x && x.parentNode) x.parentNode.removeChild(x); });
+}
+
+function fecharEntrada() {
+  ENTRADA.fase = ''; ENTRADA.verificando = false;
+  limparEntrada();
+  var j = document.getElementById('janEntrada'); if (j) j.classList.remove('on');
+}
+
+function abrirEntrada(ev) {
+  if (ev) ev.preventDefault();
+  ENTRADA.modo = entradaModo();
+  if (ENTRADA.modo !== 'sim' && acessoRecente()) { location.href = LINK_CENTRAL; return false; }
+  limparEntrada();
+  janelaEntrada().classList.add('on');
+  formularioEntrada('');
+  if (ENTRADA.modo !== 'nao') {
+    ENTRADA.verificando = true;
+    var f = document.createElement('iframe');
+    f.id = 'nacChkFrame'; f.style.cssText = 'position:absolute;width:0;height:0;border:0;visibility:hidden'; f.setAttribute('aria-hidden', 'true');
+    f.src = LINK_CENTRAL + (LINK_CENTRAL.indexOf('?') < 0 ? '?' : '&') + 'chk=1';
+    document.body.appendChild(f);
+    ENTRADA.tempo = setTimeout(function() {
+      if (!ENTRADA.verificando) return;
+      ENTRADA.verificando = false;
+      if (ENTRADA.modo === 'tentar') { lembrarMoldura('nao'); ENTRADA.modo = 'nao'; }
+    }, ENTRADA.modo === 'tentar' ? 7000 : 15000);
+  }
+  return false;
+}
+
+function irParaCentral() {
+  var moldura = ENTRADA.modo === 'sim';
+  fecharEntrada();
+  marcarAcesso();
+  if (!moldura) { location.href = LINK_CENTRAL; return; }
+  if (location.hash === '#/central') desenhar(); else location.hash = '#/central';
+}
+
+function formularioEntrada(erro) {
+  if (!document.getElementById('janEntrada')) return;
+  ENTRADA.fase = 'formulario';
+  document.getElementById('janEntradaCorpo').innerHTML =
+    '<form id="lgForm" onsubmit="return lgEntrar(event)" autocomplete="on">' +
+    '<label for="lgCpf"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>CPF</label>' +
+    '<div class="lg-campo"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>' +
+    '<input id="lgCpf" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" autocomplete="username"></div>' +
+    '<label for="lgSenha"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Senha</label>' +
+    '<div class="lg-campo"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>' +
+    '<input id="lgSenha" type="password" placeholder="Sua senha" autocomplete="current-password">' +
+    '<button type="button" class="lg-olho" onclick="lgVer()" aria-label="Mostrar ou ocultar a senha"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>' +
+    '<button class="lg-btn" id="lgBtn" type="submit"><svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg><span>Entrar</span></button>' +
+    '<div class="lg-msg" id="lgMsg"></div></form>';
+  var cpf = document.getElementById('lgCpf');
+  cpf.addEventListener('input', function() {
+    var d = this.value.replace(/\D/g, '').slice(0, 11), o = d;
+    if (d.length > 9) o = d.slice(0, 3) + '.' + d.slice(3, 6) + '.' + d.slice(6, 9) + '-' + d.slice(9);
+    else if (d.length > 6) o = d.slice(0, 3) + '.' + d.slice(3, 6) + '.' + d.slice(6);
+    else if (d.length > 3) o = d.slice(0, 3) + '.' + d.slice(3);
+    this.value = o;
+  });
+  if (ENTRADA.cpf) cpf.value = ENTRADA.cpf;
+  if (erro) lgAviso(erro);
+  (ENTRADA.cpf ? document.getElementById('lgSenha') : cpf).focus();
+}
+
+function lgVer() { var s = document.getElementById('lgSenha'); if (s) s.type = s.type === 'password' ? 'text' : 'password'; }
+function lgAviso(t) { var m = document.getElementById('lgMsg'); if (!m) return; m.className = t ? 'lg-msg err' : 'lg-msg'; m.textContent = t || ''; }
+
+// Envia CPF e senha (formulário POST): a senha não passa pelo endereço da página.
+function lgEntrar(ev) {
+  if (ev) ev.preventDefault();
+  lgAviso('');
+  var cpf = document.getElementById('lgCpf').value.replace(/\D/g, ''), senha = document.getElementById('lgSenha').value;
+  if (cpf.length !== 11) { lgAviso('Informe o CPF com 11 dígitos.'); return false; }
+  if (!senha) { lgAviso('Informe a senha.'); return false; }
+  ENTRADA.cpf = document.getElementById('lgCpf').value;
+  var b = document.getElementById('lgBtn');
+  b.classList.add('ocupado');
+  b.innerHTML = '<span class="lg-sp"></span><span>Entrando...</span>';
+  ENTRADA.fase = 'enviando';
+  var naMoldura = ENTRADA.modo === 'sim';
+  var f = document.createElement('form');
+  f.id = 'nacLoginForm'; f.method = 'POST'; f.action = LINK_CENTRAL; f.style.display = 'none';
+  [['a', 'login'], ['cpf', cpf], ['senha', senha], ['emb', naMoldura ? '1' : '0']].forEach(function(par) {
+    var i = document.createElement('input'); i.type = 'hidden'; i.name = par[0]; i.value = par[1]; f.appendChild(i);
+  });
+  if (naMoldura) {
+    var fr = document.createElement('iframe');
+    fr.id = 'nacLoginFrame'; fr.name = 'nacLoginFrame'; fr.style.cssText = 'position:absolute;width:0;height:0;border:0;visibility:hidden'; fr.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(fr);
+    f.target = 'nacLoginFrame';
+    ENTRADA.tempo = setTimeout(function() { if (ENTRADA.fase === 'enviando') formularioEntrada('Não foi possível entrar agora. Tente de novo.'); }, 25000);
+  } else {
+    marcarAcesso();
+  }
+  document.body.appendChild(f);
+  f.submit();
+  return false;
 }
 
 /* ===================== JANELA DE OPÇÕES (Manuais, Orientações, Fluxogramas) ===================== */
@@ -322,7 +458,7 @@ function homeHtml() {
     tile('Orientações', 'Regras e procedimentos', '#/orientacoes', '<path d="M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/>') +
     tile('Fluxogramas', 'Procedimentos processuais', '#/fluxogramas', '<rect x="3" y="3" width="7" height="6" rx="1"/><rect x="14" y="15" width="7" height="6" rx="1"/><path d="M6.5 9v3a2 2 0 0 0 2 2H17.5v1M10 6h4a2 2 0 0 1 2 2v1"/>');
   return '<div class="duo">' +
-    '<section><h2>Acesso à Central</h2><a class="tile" href="' + esc(LINK_CENTRAL) + '"><svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg><b>Entrar na Central</b></a></section>' +
+    '<section><h2>Acesso à Central</h2><a class="tile" href="' + esc(LINK_CENTRAL) + '" onclick="return abrirEntrada(event)"><svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg><b>Entrar na Central</b></a></section>' +
     '<section><h2>Acesso rápido</h2><div class="tiles">' + tiles + '</div></section></div>' +
     '<h2>Próximos feriados</h2><div id="cartaoFeriados" class="pcard"></div>' +
     '<h2>Processos finalizados pela equipe</h2><div id="cartaoProducao" class="pcard"><div class="vazio">Carregando...</div></div>';
@@ -459,6 +595,7 @@ function desenhar() {
   var partes = rota.split('/');
   var h;
 
+  fecharEntrada();
   document.body.classList.remove('modo-central');
   document.body.classList.toggle('home', !partes[0]);
 
@@ -482,9 +619,18 @@ function desenhar() {
 }
 
 window.addEventListener('hashchange', desenhar);
-document.addEventListener('keydown', function(e) { if (e.key === 'Escape') fecharJanela(); });
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { fecharJanela(); fecharEntrada(); } });
 // "Voltar ao portal" dentro da Central (que abre em moldura aqui): ela avisa e a página volta ao início.
+window.addEventListener('pageshow', function(e) { if (e.persisted) { fecharEntrada(); desenhar(); } });
 window.addEventListener('message', function(e) { if (e.data === 'nac-voltar-portal') { location.hash = '#/'; }
+  var d = e.data;
+  if (d && typeof d === 'object') {
+    if (d.nacStatus && ENTRADA.verificando && ENTRADA.fase === 'formulario') {
+      ENTRADA.verificando = false; clearTimeout(ENTRADA.tempo); lembrarMoldura('sim'); ENTRADA.modo = 'sim';
+      if (d.nacStatus === 'ok') irParaCentral();
+    }
+    else if (d.nacLogin && ENTRADA.fase === 'enviando') { if (d.nacLogin === 'ok') irParaCentral(); else formularioEntrada(String(d.msg || 'Não foi possível entrar.').slice(0, 200)); }
+  }
   if (e.data === 'nac-central-ok') { CENTRAL_OK = true; var f = document.getElementById('falhaCentral'); if (f) f.style.display = 'none'; }
 });
 desenhar();
