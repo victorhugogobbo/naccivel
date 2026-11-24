@@ -265,13 +265,14 @@ function homeHtml() {
 }
 
 /* ===================== JANELA DE ENTRADA ===================== */
-// Ao clicar em "Entrar na Central": a janela confere (numa moldura invisível da Central) se já existe acesso neste navegador.
-// Se existir (proprietário ou sessão válida), vai direto para a Central. Se não, pede CPF e senha na própria janela.
-var ENTRADA = { fase: '', tempo: 0 };
+// Ao clicar em "Entrar na Central" a janela abre NA HORA, já com CPF e senha. Em segundo plano o portal confere (moldura invisível
+// da Central) se já existe acesso neste navegador (proprietário ou sessão válida): se existir, a janela fecha e a Central abre direto.
+// Modos de envio do login, escolhidos pelo navegador (a janela e o que o usuário digita são iguais em todos):
+//   'sim'   Chrome/Edge no computador (ou navegador onde a moldura já funcionou): o envio é numa moldura invisível e a Central abre dentro da página.
+//   'nao'   celular, ou navegador onde o Google bloqueia a moldura (Firefox/Safari): o envio navega a página inteira, direto para a Central já logada.
+//   'tentar' primeiro uso no Firefox/Safari do computador: confere em segundo plano; se o Google bloquear, passa a 'nao' sem avisar ninguém.
+var ENTRADA = { fase: '', tempo: 0, cpf: '', modo: 'nao', verificando: false };
 
-// 'sim': a Central abre dentro da página (Chrome/Edge no computador, ou navegador em que a tentativa já deu certo).
-// 'tentar': computador com Firefox/Safari: testa uma vez; se o Google bloquear, guarda 'nao' e passa a abrir a Central direto.
-// 'nao': celular/tablet, ou navegador em que a tentativa falhou: abre a Central direto, como antes.
 function entradaModo() {
   var ua = navigator.userAgent;
   if (/iPhone|iPad|iPod|Android|Mobile/i.test(ua)) return 'nao';
@@ -281,6 +282,11 @@ function entradaModo() {
 }
 function lembrarMoldura(v) { try { localStorage.setItem('nacMoldura', v); } catch (e) {} }
 
+// Quem entrou há pouco (sem moldura não dá para conferir): vai direto à Central, que confirma a sessão e, se vencida, pede o login.
+var RECENTE_MIN = 60;
+function marcarAcesso() { try { localStorage.setItem('nacAcessoEm', String(Date.now())); } catch (e) {} }
+function acessoRecente() { try { return Date.now() - Number(localStorage.getItem('nacAcessoEm') || 0) < RECENTE_MIN * 60000; } catch (e) { return false; } }
+
 function janelaEntrada() {
   var j = document.getElementById('janEntrada');
   if (j) return j;
@@ -288,7 +294,7 @@ function janelaEntrada() {
   j.id = 'janEntrada'; j.className = 'veu';
   j.setAttribute('onclick', 'if(event.target===this)fecharEntrada()');
   j.innerHTML = '<div class="jan" role="dialog" aria-modal="true" aria-label="Entrar na Central">' +
-    '<div class="jan-top"><b>Entrar na Central</b><button type="button" class="jan-x" onclick="fecharEntrada()" aria-label="Fechar">\u00d7</button></div>' +
+    '<div class="jan-top"><b>Entrar na Central</b><button type="button" class="jan-x" onclick="fecharEntrada()" aria-label="Fechar">×</button></div>' +
     '<div class="jan-corpo" id="janEntradaCorpo"></div></div>';
   document.body.appendChild(j);
   return j;
@@ -300,39 +306,43 @@ function limparEntrada() {
 }
 
 function fecharEntrada() {
-  ENTRADA.fase = '';
+  ENTRADA.fase = ''; ENTRADA.verificando = false;
   limparEntrada();
   var j = document.getElementById('janEntrada'); if (j) j.classList.remove('on');
 }
 
 function abrirEntrada(ev) {
   if (ev) ev.preventDefault();
-  var modo = entradaModo();
-  if (modo === 'nao') { location.hash = '#/central'; return false; }   // celular ou navegador que bloqueia a moldura: abre a Central direto, como antes
-  janelaEntrada().classList.add('on');
-  ENTRADA.fase = 'conferindo';
-  document.getElementById('janEntradaCorpo').innerHTML = '<div class="jan-espera"><span class="lg-sp"></span><span>Verificando acesso...</span></div>';
+  ENTRADA.modo = entradaModo();
+  // Sem moldura e com acesso recente: vai direto à Central (que confirma a sessão).
+  if (ENTRADA.modo !== 'sim' && acessoRecente()) { location.hash = '#/central'; return false; }
   limparEntrada();
-  var f = document.createElement('iframe');
-  f.id = 'nacChkFrame'; f.style.cssText = 'position:absolute;width:0;height:0;border:0;visibility:hidden'; f.setAttribute('aria-hidden', 'true');
-  f.src = LINK_CENTRAL + (LINK_CENTRAL.indexOf('?') < 0 ? '?' : '&') + 'chk=1';
-  document.body.appendChild(f);
-  ENTRADA.tempo = setTimeout(function() {
-    if (ENTRADA.fase !== 'conferindo') return;
-    if (modo === 'tentar') { lembrarMoldura('nao'); fecharEntrada(); location.hash = '#/central'; }   // o Google bloqueou: abre a Central direto
-    else formularioEntrada('');
-  }, modo === 'tentar' ? 7000 : 12000);
+  janelaEntrada().classList.add('on');
+  formularioEntrada('');
+  // Conferência em segundo plano (só onde a moldura pode funcionar).
+  if (ENTRADA.modo !== 'nao') {
+    ENTRADA.verificando = true;
+    var f = document.createElement('iframe');
+    f.id = 'nacChkFrame'; f.style.cssText = 'position:absolute;width:0;height:0;border:0;visibility:hidden'; f.setAttribute('aria-hidden', 'true');
+    f.src = LINK_CENTRAL + (LINK_CENTRAL.indexOf('?') < 0 ? '?' : '&') + 'chk=1';
+    document.body.appendChild(f);
+    ENTRADA.tempo = setTimeout(function() {
+      if (!ENTRADA.verificando) return;
+      ENTRADA.verificando = false;
+      if (ENTRADA.modo === 'tentar') { lembrarMoldura('nao'); ENTRADA.modo = 'nao'; }   // o Google bloqueou a moldura: sem aviso
+    }, ENTRADA.modo === 'tentar' ? 7000 : 15000);
+  }
   return false;
 }
 
 function irParaCentral() {
   fecharEntrada();
+  marcarAcesso();
   if (location.hash === '#/central') desenhar(); else location.hash = '#/central';
 }
 
 function formularioEntrada(erro) {
   if (!document.getElementById('janEntrada')) return;
-  limparEntrada();
   ENTRADA.fase = 'formulario';
   document.getElementById('janEntradaCorpo').innerHTML =
     '<form id="lgForm" onsubmit="return lgEntrar(event)" autocomplete="on">' +
@@ -361,7 +371,7 @@ function formularioEntrada(erro) {
 function lgVer() { var s = document.getElementById('lgSenha'); if (s) s.type = s.type === 'password' ? 'text' : 'password'; }
 function lgAviso(t) { var m = document.getElementById('lgMsg'); if (!m) return; m.className = t ? 'lg-msg err' : 'lg-msg'; m.textContent = t || ''; }
 
-// Envia CPF e senha (formulário POST, numa moldura invisível). A senha não passa pelo endereço da página.
+// Envia CPF e senha (formulário POST). A senha não passa pelo endereço da página.
 function lgEntrar(ev) {
   if (ev) ev.preventDefault();
   lgAviso('');
@@ -373,17 +383,23 @@ function lgEntrar(ev) {
   b.classList.add('ocupado');
   b.innerHTML = '<span class="lg-sp"></span><span>Entrando...</span>';
   ENTRADA.fase = 'enviando';
-  var fr = document.createElement('iframe');
-  fr.id = 'nacLoginFrame'; fr.name = 'nacLoginFrame'; fr.style.cssText = 'position:absolute;width:0;height:0;border:0;visibility:hidden'; fr.setAttribute('aria-hidden', 'true');
-  document.body.appendChild(fr);
+  var naMoldura = ENTRADA.modo === 'sim';   // 'tentar' ainda não confirmado: envia pela página inteira, que funciona em qualquer navegador
   var f = document.createElement('form');
-  f.id = 'nacLoginForm'; f.method = 'POST'; f.action = LINK_CENTRAL; f.target = 'nacLoginFrame'; f.style.display = 'none';
-  [['a', 'login'], ['cpf', cpf], ['senha', senha]].forEach(function(par) {
+  f.id = 'nacLoginForm'; f.method = 'POST'; f.action = LINK_CENTRAL; f.style.display = 'none';
+  [['a', 'login'], ['cpf', cpf], ['senha', senha], ['emb', naMoldura ? '1' : '0']].forEach(function(par) {
     var i = document.createElement('input'); i.type = 'hidden'; i.name = par[0]; i.value = par[1]; f.appendChild(i);
   });
+  if (naMoldura) {
+    var fr = document.createElement('iframe');
+    fr.id = 'nacLoginFrame'; fr.name = 'nacLoginFrame'; fr.style.cssText = 'position:absolute;width:0;height:0;border:0;visibility:hidden'; fr.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(fr);
+    f.target = 'nacLoginFrame';
+    ENTRADA.tempo = setTimeout(function() { if (ENTRADA.fase === 'enviando') formularioEntrada('Não foi possível entrar agora. Tente de novo.'); }, 25000);
+  } else {
+    marcarAcesso();   // a página inteira vai para a Central; se o login falhar, a tela de erro volta para esta janela
+  }
   document.body.appendChild(f);
   f.submit();
-  ENTRADA.tempo = setTimeout(function() { if (ENTRADA.fase === 'enviando') formularioEntrada('Não foi possível entrar agora. Tente de novo.'); }, 25000);
   return false;
 }
 
@@ -542,11 +558,16 @@ function desenhar() {
 }
 
 window.addEventListener('hashchange', desenhar);
+// Voltar do navegador (ex.: tela de erro do login): reabre a página limpa, sem janela presa em "Entrando...".
+window.addEventListener('pageshow', function(e) { if (e.persisted) { fecharEntrada(); desenhar(); } });
 // "Voltar ao portal" dentro da Central (que abre em moldura aqui): ela avisa e a página volta ao início.
 window.addEventListener('message', function(e) { if (e.data === 'nac-voltar-portal') { location.hash = '#/'; }
   var d = e.data;
   if (d && typeof d === 'object') {
-    if (d.nacStatus && ENTRADA.fase === 'conferindo') { lembrarMoldura('sim'); if (d.nacStatus === 'ok') irParaCentral(); else formularioEntrada(''); }
+    if (d.nacStatus && ENTRADA.verificando && ENTRADA.fase === 'formulario') {
+      ENTRADA.verificando = false; clearTimeout(ENTRADA.tempo); lembrarMoldura('sim'); ENTRADA.modo = 'sim';   // a moldura funciona neste navegador
+      if (d.nacStatus === 'ok') irParaCentral();
+    }
     else if (d.nacLogin && ENTRADA.fase === 'enviando') { if (d.nacLogin === 'ok') irParaCentral(); else formularioEntrada(String(d.msg || 'Não foi possível entrar.').slice(0, 200)); }
   }
   if (e.data === 'nac-central-ok') { CENTRAL_OK = true; var f = document.getElementById('falhaCentral'); if (f) f.style.display = 'none'; }
