@@ -226,8 +226,7 @@ var CENTRAL_OK = false, TEMPO_CENTRAL = 0;
 // Firefox, Safari e celulares/tablets bloqueiam os cookies do Google dentro de moldura (erro 401): nesses abre direto.
 function abrirCentral() {
   var ua = navigator.userAgent;
-  var chromium = /Chrome|Chromium|CriOS|Edg\//.test(ua) && !/FxiOS|Firefox/.test(ua);
-  if (!chromium || /iPhone|iPad|iPod|Android|Mobile/i.test(ua)) { location.replace(LINK_CENTRAL); return; }
+  if (entradaModo() !== 'sim') { location.replace(LINK_CENTRAL); return; }
   document.body.classList.add('modo-central');
   document.getElementById('tela').innerHTML = '<iframe class="central" src="' + esc(LINK_CENTRAL) + '" title="Central NAC Cível" allow="clipboard-write; clipboard-read"></iframe>' +
     '<div class="falha-central" id="falhaCentral" style="display:none"></div>';
@@ -270,11 +269,17 @@ function homeHtml() {
 // Se existir (proprietário ou sessão válida), vai direto para a Central. Se não, pede CPF e senha na própria janela.
 var ENTRADA = { fase: '', tempo: 0 };
 
-function entradaMoldura() {   // mesma regra do abrirCentral: Chrome/Edge no computador usam moldura
+// 'sim': a Central abre dentro da página (Chrome/Edge no computador, ou navegador em que a tentativa já deu certo).
+// 'tentar': computador com Firefox/Safari: testa uma vez; se o Google bloquear, guarda 'nao' e passa a abrir a Central direto.
+// 'nao': celular/tablet, ou navegador em que a tentativa falhou: abre a Central direto, como antes.
+function entradaModo() {
   var ua = navigator.userAgent;
-  var chromium = /Chrome|Chromium|CriOS|Edg\//.test(ua) && !/FxiOS|Firefox/.test(ua);
-  return chromium && !/iPhone|iPad|iPod|Android|Mobile/i.test(ua);
+  if (/iPhone|iPad|iPod|Android|Mobile/i.test(ua)) return 'nao';
+  if (/Chrome|Chromium|CriOS|Edg\//.test(ua) && !/FxiOS|Firefox/.test(ua)) return 'sim';
+  try { var m = localStorage.getItem('nacMoldura'); if (m === 'sim' || m === 'nao') return m; } catch (e) {}
+  return 'tentar';
 }
+function lembrarMoldura(v) { try { localStorage.setItem('nacMoldura', v); } catch (e) {} }
 
 function janelaEntrada() {
   var j = document.getElementById('janEntrada');
@@ -302,7 +307,8 @@ function fecharEntrada() {
 
 function abrirEntrada(ev) {
   if (ev) ev.preventDefault();
-  if (!entradaMoldura()) { location.hash = '#/central'; return false; }   // celular, Firefox, Safari: abre a Central direto, como antes
+  var modo = entradaModo();
+  if (modo === 'nao') { location.hash = '#/central'; return false; }   // celular ou navegador que bloqueia a moldura: abre a Central direto, como antes
   janelaEntrada().classList.add('on');
   ENTRADA.fase = 'conferindo';
   document.getElementById('janEntradaCorpo').innerHTML = '<div class="jan-espera"><span class="lg-sp"></span><span>Verificando acesso...</span></div>';
@@ -311,7 +317,11 @@ function abrirEntrada(ev) {
   f.id = 'nacChkFrame'; f.style.cssText = 'position:absolute;width:0;height:0;border:0;visibility:hidden'; f.setAttribute('aria-hidden', 'true');
   f.src = LINK_CENTRAL + (LINK_CENTRAL.indexOf('?') < 0 ? '?' : '&') + 'chk=1';
   document.body.appendChild(f);
-  ENTRADA.tempo = setTimeout(function() { if (ENTRADA.fase === 'conferindo') formularioEntrada(''); }, 12000);
+  ENTRADA.tempo = setTimeout(function() {
+    if (ENTRADA.fase !== 'conferindo') return;
+    if (modo === 'tentar') { lembrarMoldura('nao'); fecharEntrada(); location.hash = '#/central'; }   // o Google bloqueou: abre a Central direto
+    else formularioEntrada('');
+  }, modo === 'tentar' ? 7000 : 12000);
   return false;
 }
 
@@ -536,7 +546,7 @@ window.addEventListener('hashchange', desenhar);
 window.addEventListener('message', function(e) { if (e.data === 'nac-voltar-portal') { location.hash = '#/'; }
   var d = e.data;
   if (d && typeof d === 'object') {
-    if (d.nacStatus && ENTRADA.fase === 'conferindo') { if (d.nacStatus === 'ok') irParaCentral(); else formularioEntrada(''); }
+    if (d.nacStatus && ENTRADA.fase === 'conferindo') { lembrarMoldura('sim'); if (d.nacStatus === 'ok') irParaCentral(); else formularioEntrada(''); }
     else if (d.nacLogin && ENTRADA.fase === 'enviando') { if (d.nacLogin === 'ok') irParaCentral(); else formularioEntrada(String(d.msg || 'Não foi possível entrar.').slice(0, 200)); }
   }
   if (e.data === 'nac-central-ok') { CENTRAL_OK = true; var f = document.getElementById('falhaCentral'); if (f) f.style.display = 'none'; }
