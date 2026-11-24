@@ -273,9 +273,9 @@ function entradaModo() {
 }
 function lembrarMoldura(v) { try { localStorage.setItem('nacMoldura', v); } catch (e) {} }
 
-// Sem moldura não dá para conferir o acesso: quem entrou há menos de 1 hora vai direto à Central, que confirma a sessão.
+// Quem entrou há menos de 100 minutos vai direto à Central, sem conferir de novo (fica instantâneo).
 function marcarAcesso() { try { localStorage.setItem('nacAcessoEm', String(Date.now())); } catch (e) {} }
-function acessoRecente() { try { return Date.now() - Number(localStorage.getItem('nacAcessoEm') || 0) < 3600000; } catch (e) { return false; } }
+function acessoRecente() { try { return Date.now() - Number(localStorage.getItem('nacAcessoEm') || 0) < 6000000; } catch (e) { return false; } }
 
 function janelaEntrada() {
   var j = document.getElementById('janEntrada');
@@ -304,7 +304,8 @@ function fecharEntrada() {
 function abrirEntrada(ev) {
   if (ev) ev.preventDefault();
   ENTRADA.modo = entradaModo();
-  if (ENTRADA.modo !== 'sim' && acessoRecente()) { location.href = LINK_CENTRAL; return false; }
+  // Entrou há pouco neste navegador: vai direto (a Central confirma a sessão; se tiver vencido, ela mesma pede o login). Na moldura (Chrome/Edge) abre dentro do portal.
+  if (acessoRecente()) { if (ENTRADA.modo === 'sim') location.hash = '#/central'; else location.href = LINK_CENTRAL; return false; }
   limparEntrada();
   janelaEntrada().classList.add('on');
   formularioEntrada('');
