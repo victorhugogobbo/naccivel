@@ -77,44 +77,52 @@
     .pr-rodape { margin-top:10px; font-size:11.5px; color:#667085; }
     @media (max-width:640px){ .barra .bv { display:none; } .pr-nums { grid-template-columns:1fr 1fr 1fr; } .pr-num b { font-size:16px; } }
 
-    /* ---- página inicial: login + acesso rápido ---- */
+    /* ---- página inicial: botão de entrada + acesso rápido ---- */
     body.home .topo, body.home main, body.home .rodape { max-width:1200px; }
     body.home main { width:calc(100% - 36px); padding-left:0; padding-right:0; }
     body.home .topo { border-bottom:0; border-radius:12px; box-shadow:0 4px 14px rgba(8,37,66,.18); }
     .pcard { background:#fff; border:1px solid #e3e8ef; border-radius:14px; padding:18px 20px; box-shadow:0 4px 14px rgba(8,37,66,.08); }
-    .duo { display:grid; grid-template-columns:minmax(300px,400px) 1fr; gap:16px; align-items:stretch; }
+    .duo { display:grid; grid-template-columns:1fr 4fr; gap:16px; align-items:stretch; }
     .duo > section { display:flex; flex-direction:column; }
-    @media (max-width:860px){ .duo { grid-template-columns:1fr; } }
-    .lg-card { flex:1; background:#fff; border:1px solid #e3e8ef; border-top:3px solid #d7b14a; border-radius:14px; box-shadow:0 4px 14px rgba(8,37,66,.10); padding:18px 20px; display:flex; flex-direction:column; justify-content:center; }
-    .lg-form { display:grid; grid-template-columns:1fr; gap:12px; }
-    .lg-card label { display:flex; align-items:center; gap:7px; font-size:13px; font-weight:700; color:#082542; margin:0 0 5px; }
-    .lg-card label svg { width:15px; height:15px; stroke:#082542; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-    .lg-campo { position:relative; }
+    .tiles { flex:1; display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+    .tile { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:104px; text-decoration:none; color:#fff; cursor:pointer; font-family:inherit; background:linear-gradient(160deg,#0d3260,#082542); border:1px solid #082542; border-top:3px solid #d7b14a; border-radius:12px; padding:15px 12px; text-align:center; box-shadow:0 4px 10px rgba(8,37,66,.22); transition:box-shadow .15s, transform .15s, border-color .15s; }
+    .duo > section > .tile { flex:1; border-color:#d7b14a; border-top-width:4px; }
+    .tile:hover, .tile:focus { border-color:#d7b14a; box-shadow:0 10px 22px rgba(8,37,66,.34); transform:translateY(-3px); outline:none; }
+    .tile b { display:block; font-size:14px; margin-top:6px; }
+    .tile small { display:block; margin-top:3px; font-size:11.5px; color:#c9d6e6; line-height:1.35; }
+    .tile svg { width:30px; height:30px; stroke:#d7b14a; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    @media (max-width:900px){ .duo { grid-template-columns:1fr; } .tiles { grid-template-columns:1fr 1fr; } }
+    @media (max-width:480px){ .tiles { gap:9px; } .tile { padding:11px 8px; min-height:92px; } }
+
+    /* ---- janela de entrada ---- */
+    .veu { position:fixed; inset:0; background:rgba(8,20,36,.62); display:none; align-items:center; justify-content:center; padding:18px; z-index:200000; }
+    .veu.on { display:flex; }
+    .jan { background:#fff; border-radius:14px; width:100%; max-width:400px; box-shadow:0 24px 60px rgba(0,0,0,.45); overflow:hidden; }
+    .jan-top { display:flex; align-items:center; justify-content:space-between; gap:10px; background:#082542; color:#fff; padding:14px 18px; border-bottom:3px solid #d7b14a; }
+    .jan-top b { font-size:16px; }
+    .jan-x { width:34px; height:34px; border:0; border-radius:8px; background:rgba(255,255,255,.12); color:#fff; font-size:20px; line-height:1; cursor:pointer; }
+    .jan-x:hover { background:rgba(255,255,255,.24); }
+    .jan-corpo { padding:20px; }
+    .jan-espera { display:flex; align-items:center; justify-content:center; gap:12px; padding:26px 0; color:#475467; font-size:14px; }
+    .jan-corpo label { display:flex; align-items:center; gap:7px; font-size:13px; font-weight:700; color:#082542; margin:0 0 5px; }
+    .jan-corpo label svg { width:15px; height:15px; stroke:#082542; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .lg-campo { position:relative; margin-bottom:14px; }
     .lg-campo > svg.ic { position:absolute; left:14px; top:50%; transform:translateY(-50%); width:18px; height:18px; stroke:#8a9ab0; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
     .lg-campo input { width:100%; height:44px; border:1.5px solid #d9e0ea; border-radius:11px; padding:0 44px; font-size:15px; font-family:inherit; color:#172033; background:#f7f9fc; outline:none; transition:border-color .15s, box-shadow .15s, background .15s; }
     .lg-campo input:focus { border-color:#082542; background:#fff; box-shadow:0 0 0 4px rgba(8,37,66,.10); }
     .lg-olho { position:absolute; right:6px; top:50%; transform:translateY(-50%); width:38px; height:38px; border:0; background:transparent; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
     .lg-olho:hover { background:#eef2f8; }
     .lg-olho svg { width:19px; height:19px; stroke:#8a9ab0; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-    .lg-btn { display:flex; align-items:center; justify-content:center; gap:9px; width:100%; height:46px; border:0; border-radius:11px; font-size:15px; font-weight:700; font-family:inherit; cursor:pointer; background:linear-gradient(135deg,#0d3260,#082542); color:#fff; border-top:3px solid #d7b14a; box-shadow:0 6px 16px rgba(8,37,66,.28); transition:transform .12s, filter .15s, box-shadow .15s; }
+    .lg-btn { display:flex; align-items:center; justify-content:center; gap:9px; width:100%; height:46px; border:0; border-radius:11px; font-size:15px; font-weight:700; font-family:inherit; cursor:pointer; background:linear-gradient(135deg,#0d3260,#082542); color:#fff; border-top:3px solid #d7b14a; box-shadow:0 6px 16px rgba(8,37,66,.28); transition:transform .12s, filter .15s; }
     .lg-btn svg { width:19px; height:19px; stroke:#d7b14a; fill:none; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
-    .lg-btn:hover { filter:brightness(1.15); box-shadow:0 8px 20px rgba(8,37,66,.38); }
+    .lg-btn:hover { filter:brightness(1.15); }
     .lg-btn:active { transform:scale(.985); }
     .lg-btn.ocupado { pointer-events:none; opacity:.8; }
-    .lg-sp { width:17px; height:17px; border-radius:50%; border:2.5px solid rgba(255,255,255,.35); border-top-color:#fff; animation:lgg .7s linear infinite; }
+    .lg-sp { display:inline-block; width:17px; height:17px; border-radius:50%; border:2.5px solid rgba(8,37,66,.25); border-top-color:#082542; animation:lgg .7s linear infinite; }
+    .lg-btn .lg-sp { border-color:rgba(255,255,255,.35); border-top-color:#fff; }
     @keyframes lgg { to { transform:rotate(360deg); } }
     .lg-msg { display:none; margin-top:12px; padding:10px 12px; border-radius:9px; font-size:13px; line-height:1.45; }
     .lg-msg.err { display:block; background:#fef3f2; border:1px solid #fecdca; color:#b42318; }
-    .lg-direto { display:block; margin-top:12px; text-align:center; font-size:12px; color:#667085; text-decoration:none; }
-    .lg-direto:hover { color:#082542; text-decoration:underline; }
-    .tiles { flex:1; display:grid; grid-template-columns:1fr 1fr; grid-auto-rows:1fr; gap:12px; }
-    .tile { display:flex; flex-direction:column; align-items:center; justify-content:center; text-decoration:none; color:#fff; background:linear-gradient(160deg,#0d3260,#082542); border:1px solid #082542; border-top:3px solid #d7b14a; border-radius:12px; padding:15px 12px; text-align:center; box-shadow:0 4px 10px rgba(8,37,66,.22); transition:box-shadow .15s, transform .15s, border-color .15s; }
-    .tile:hover, .tile:focus { border-color:#d7b14a; box-shadow:0 10px 22px rgba(8,37,66,.34); transform:translateY(-3px); outline:none; }
-    .tile b { display:block; font-size:14px; margin-top:6px; }
-    .tile small { display:block; margin-top:3px; font-size:11.5px; color:#c9d6e6; line-height:1.35; }
-    .tile svg { width:30px; height:30px; stroke:#d7b14a; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
-    @media (max-width:860px){ .tiles { grid-auto-rows:auto; } }
-    @media (max-width:480px){ .tiles { gap:9px; } .tile { padding:11px 8px; } }
   </style>
 </head>
 <body>
@@ -123,30 +131,6 @@
   <main>
     <div id="tela"></div>
   </main>
-
-  <template id="modeloLogin">
-    <div class="lg-card">
-      <form class="lg-form" id="lgForm" onsubmit="return lgEntrar(event)" autocomplete="on">
-        <div>
-          <label for="lgCpf"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>CPF</label>
-          <div class="lg-campo">
-            <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
-            <input id="lgCpf" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" autocomplete="username">
-          </div>
-        </div>
-        <div>
-          <label for="lgSenha"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Senha</label>
-          <div class="lg-campo">
-            <svg class="ic" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
-            <input id="lgSenha" type="password" placeholder="Sua senha" autocomplete="current-password">
-            <button type="button" class="lg-olho" onclick="lgVer()" aria-label="Mostrar ou ocultar a senha"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
-          </div>
-        </div>
-        <button class="lg-btn" id="lgBtn" type="submit"><svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg><span>Entrar na Central</span></button>
-      </form>
-      <div class="lg-msg" id="lgMsg"></div>
-    </div>
-  </template>
 
   <div class="rodape">
     <div>Diretoria Judiciária - Núcleo de Apoio ao Cumprimento de Atos · 1º e 2º Grau</div>
@@ -240,35 +224,29 @@ function listaLinks(itens) {
 // A Central abre dentro do próprio portal (tela inteira), para o endereço naccivel.com.br não mudar.
 var CENTRAL_OK = false, TEMPO_CENTRAL = 0;
 // Firefox, Safari e celulares/tablets bloqueiam os cookies do Google dentro de moldura (erro 401): nesses abre direto.
-function mostrarFalhaCentral() {
-  var f = document.getElementById('falhaCentral');
-  if (!f || CENTRAL_OK) return;
-  var topo = document.querySelector('.topo'), rodape = document.querySelector('.rodape');
-  f.innerHTML = (topo ? topo.outerHTML : '') +
-    '<div class="miolo"><h3>Entre com a sua conta Google para acessar a Central</h3>' +
-    '<p>A Central precisa de uma conta Google conectada neste navegador e liberada pelos gestores. Clique abaixo para entrar; se a conta tiver acesso, a Central abre normalmente.</p>' +
-    '<a class="entrar" href="' + esc(LINK_CENTRAL) + '">Entrar na Central</a>' +
-    '<a class="sec" href="#/">‹ Voltar ao portal</a></div>' + (rodape ? rodape.outerHTML : '');
-  f.style.display = 'flex';
-}
 function abrirCentral() {
   var ua = navigator.userAgent;
   var chromium = /Chrome|Chromium|CriOS|Edg\//.test(ua) && !/FxiOS|Firefox/.test(ua);
-  var naoMoldura = !chromium || /iPhone|iPad|iPod|Android|Mobile/i.test(ua);
-  var login = PENDENTE_LOGIN; PENDENTE_LOGIN = null;
-  if (login) { enviarLoginCentral(login, !naoMoldura); return; }
-  if (naoMoldura) { location.replace(LINK_CENTRAL); return; }
+  if (!chromium || /iPhone|iPad|iPod|Android|Mobile/i.test(ua)) { location.replace(LINK_CENTRAL); return; }
   document.body.classList.add('modo-central');
   document.getElementById('tela').innerHTML = '<iframe class="central" src="' + esc(LINK_CENTRAL) + '" title="Central NAC Cível" allow="clipboard-write; clipboard-read"></iframe>' +
     '<div class="falha-central" id="falhaCentral" style="display:none"></div>';
   CENTRAL_OK = false;
   clearTimeout(TEMPO_CENTRAL);
-  TEMPO_CENTRAL = setTimeout(mostrarFalhaCentral, 3000);
+  TEMPO_CENTRAL = setTimeout(function() {
+    var f = document.getElementById('falhaCentral');
+    if (!f || CENTRAL_OK) return;
+    var topo = document.querySelector('.topo'), rodape = document.querySelector('.rodape');
+    f.innerHTML = (topo ? topo.outerHTML : '') +
+      '<div class="miolo"><h3>Entre com a sua conta Google para acessar a Central</h3>' +
+      '<p>A Central precisa de uma conta Google conectada neste navegador e liberada pelos gestores. Clique abaixo para entrar; se a conta tiver acesso, a Central abre normalmente.</p>' +
+      '<a class="entrar" href="' + esc(LINK_CENTRAL) + '">Entrar na Central</a>' +
+      '<a class="sec" href="#/">‹ Voltar ao portal</a></div>' + (rodape ? rodape.outerHTML : '');
+    f.style.display = 'flex';
+  }, 3000);
 }
 
-/* ===================== PÁGINA INICIAL: login + acesso rápido ===================== */
-var PENDENTE_LOGIN = null, ERRO_LOGIN = '', CPF_DIGITADO = '';
-
+/* ===================== PÁGINA INICIAL: botão de entrada + acesso rápido ===================== */
 function tile(nome, desc, href, icone, novaAba) {
   var alvo = novaAba ? ' target="_blank" rel="noopener noreferrer"' : '';
   return '<a class="tile" href="' + esc(href) + '"' + alvo + '><svg viewBox="0 0 24 24">' + icone + '</svg><b>' + esc(nome) + '</b><small>' + esc(desc) + '</small></a>';
@@ -281,15 +259,83 @@ function homeHtml() {
     tile('Orientações', 'Regras e procedimentos', '#/orientacoes', '<path d="M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/>') +
     tile('Fluxogramas', 'Procedimentos processuais', '#/fluxogramas', '<rect x="3" y="3" width="7" height="6" rx="1"/><rect x="14" y="15" width="7" height="6" rx="1"/><path d="M6.5 9v3a2 2 0 0 0 2 2H17.5v1M10 6h4a2 2 0 0 1 2 2v1"/>');
   return '<div class="duo">' +
-    '<section><h2>Acesso à Central</h2>' + document.getElementById('modeloLogin').innerHTML + '</section>' +
+    '<section><h2>Acesso à Central</h2><a class="tile" href="#/central" onclick="return abrirEntrada(event)"><svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg><b>Entrar na Central</b></a></section>' +
     '<section><h2>Acesso rápido</h2><div class="tiles">' + tiles + '</div></section></div>' +
     '<h2>Próximos feriados</h2><div id="cartaoFeriados" class="pcard"></div>' +
     '<h2>Processos finalizados pela equipe</h2><div id="cartaoProducao" class="pcard"><div class="vazio">Carregando...</div></div>';
 }
 
-function lgIniciar() {
+/* ===================== JANELA DE ENTRADA ===================== */
+// Ao clicar em "Entrar na Central": a janela confere (numa moldura invisível da Central) se já existe acesso neste navegador.
+// Se existir (proprietário ou sessão válida), vai direto para a Central. Se não, pede CPF e senha na própria janela.
+var ENTRADA = { fase: '', tempo: 0 };
+
+function entradaMoldura() {   // mesma regra do abrirCentral: Chrome/Edge no computador usam moldura
+  var ua = navigator.userAgent;
+  var chromium = /Chrome|Chromium|CriOS|Edg\//.test(ua) && !/FxiOS|Firefox/.test(ua);
+  return chromium && !/iPhone|iPad|iPod|Android|Mobile/i.test(ua);
+}
+
+function janelaEntrada() {
+  var j = document.getElementById('janEntrada');
+  if (j) return j;
+  j = document.createElement('div');
+  j.id = 'janEntrada'; j.className = 'veu';
+  j.setAttribute('onclick', 'if(event.target===this)fecharEntrada()');
+  j.innerHTML = '<div class="jan" role="dialog" aria-modal="true" aria-label="Entrar na Central">' +
+    '<div class="jan-top"><b>Entrar na Central</b><button type="button" class="jan-x" onclick="fecharEntrada()" aria-label="Fechar">\u00d7</button></div>' +
+    '<div class="jan-corpo" id="janEntradaCorpo"></div></div>';
+  document.body.appendChild(j);
+  return j;
+}
+
+function limparEntrada() {
+  clearTimeout(ENTRADA.tempo);
+  ['nacChkFrame', 'nacLoginFrame', 'nacLoginForm'].forEach(function(id) { var x = document.getElementById(id); if (x && x.parentNode) x.parentNode.removeChild(x); });
+}
+
+function fecharEntrada() {
+  ENTRADA.fase = '';
+  limparEntrada();
+  var j = document.getElementById('janEntrada'); if (j) j.classList.remove('on');
+}
+
+function abrirEntrada(ev) {
+  if (ev) ev.preventDefault();
+  if (!entradaMoldura()) { location.hash = '#/central'; return false; }   // celular, Firefox, Safari: abre a Central direto, como antes
+  janelaEntrada().classList.add('on');
+  ENTRADA.fase = 'conferindo';
+  document.getElementById('janEntradaCorpo').innerHTML = '<div class="jan-espera"><span class="lg-sp"></span><span>Verificando acesso...</span></div>';
+  limparEntrada();
+  var f = document.createElement('iframe');
+  f.id = 'nacChkFrame'; f.style.cssText = 'position:absolute;width:0;height:0;border:0;visibility:hidden'; f.setAttribute('aria-hidden', 'true');
+  f.src = LINK_CENTRAL + (LINK_CENTRAL.indexOf('?') < 0 ? '?' : '&') + 'chk=1';
+  document.body.appendChild(f);
+  ENTRADA.tempo = setTimeout(function() { if (ENTRADA.fase === 'conferindo') formularioEntrada(''); }, 12000);
+  return false;
+}
+
+function irParaCentral() {
+  fecharEntrada();
+  if (location.hash === '#/central') desenhar(); else location.hash = '#/central';
+}
+
+function formularioEntrada(erro) {
+  if (!document.getElementById('janEntrada')) return;
+  limparEntrada();
+  ENTRADA.fase = 'formulario';
+  document.getElementById('janEntradaCorpo').innerHTML =
+    '<form id="lgForm" onsubmit="return lgEntrar(event)" autocomplete="on">' +
+    '<label for="lgCpf"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>CPF</label>' +
+    '<div class="lg-campo"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>' +
+    '<input id="lgCpf" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" autocomplete="username"></div>' +
+    '<label for="lgSenha"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Senha</label>' +
+    '<div class="lg-campo"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>' +
+    '<input id="lgSenha" type="password" placeholder="Sua senha" autocomplete="current-password">' +
+    '<button type="button" class="lg-olho" onclick="lgVer()" aria-label="Mostrar ou ocultar a senha"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>' +
+    '<button class="lg-btn" id="lgBtn" type="submit"><svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg><span>Entrar</span></button>' +
+    '<div class="lg-msg" id="lgMsg"></div></form>';
   var cpf = document.getElementById('lgCpf');
-  if (!cpf) return;
   cpf.addEventListener('input', function() {
     var d = this.value.replace(/\D/g, '').slice(0, 11), o = d;
     if (d.length > 9) o = d.slice(0, 3) + '.' + d.slice(3, 6) + '.' + d.slice(6, 9) + '-' + d.slice(9);
@@ -297,47 +343,38 @@ function lgIniciar() {
     else if (d.length > 3) o = d.slice(0, 3) + '.' + d.slice(3);
     this.value = o;
   });
-  if (ERRO_LOGIN) { cpf.value = CPF_DIGITADO; lgAviso(ERRO_LOGIN); ERRO_LOGIN = ''; document.getElementById('lgSenha').focus(); }
+  if (ENTRADA.cpf) cpf.value = ENTRADA.cpf;
+  if (erro) lgAviso(erro);
+  (ENTRADA.cpf ? document.getElementById('lgSenha') : cpf).focus();
 }
+
 function lgVer() { var s = document.getElementById('lgSenha'); if (s) s.type = s.type === 'password' ? 'text' : 'password'; }
 function lgAviso(t) { var m = document.getElementById('lgMsg'); if (!m) return; m.className = t ? 'lg-msg err' : 'lg-msg'; m.textContent = t || ''; }
 
-// Valida e entrega o CPF e a senha para a Central (abrirCentral faz o envio).
+// Envia CPF e senha (formulário POST, numa moldura invisível). A senha não passa pelo endereço da página.
 function lgEntrar(ev) {
   if (ev) ev.preventDefault();
   lgAviso('');
   var cpf = document.getElementById('lgCpf').value.replace(/\D/g, ''), senha = document.getElementById('lgSenha').value;
   if (cpf.length !== 11) { lgAviso('Informe o CPF com 11 dígitos.'); return false; }
   if (!senha) { lgAviso('Informe a senha.'); return false; }
+  ENTRADA.cpf = document.getElementById('lgCpf').value;
   var b = document.getElementById('lgBtn');
   b.classList.add('ocupado');
   b.innerHTML = '<span class="lg-sp"></span><span>Entrando...</span>';
-  CPF_DIGITADO = document.getElementById('lgCpf').value;
-  PENDENTE_LOGIN = { cpf: cpf, senha: senha };
-  location.hash = '#/central';
-  return false;
-}
-
-// Envia CPF e senha (formulário POST) para a Central. A senha não passa pelo endereço da página.
-// Na moldura (Chrome/Edge no computador) a resposta aparece na própria moldura; nos demais, a página inteira vai para a Central.
-function enviarLoginCentral(login, naMoldura) {
+  ENTRADA.fase = 'enviando';
+  var fr = document.createElement('iframe');
+  fr.id = 'nacLoginFrame'; fr.name = 'nacLoginFrame'; fr.style.cssText = 'position:absolute;width:0;height:0;border:0;visibility:hidden'; fr.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(fr);
   var f = document.createElement('form');
-  f.method = 'POST'; f.action = LINK_CENTRAL; f.style.display = 'none';
-  [['a', 'login'], ['cpf', login.cpf], ['senha', login.senha], ['emb', naMoldura ? '1' : '0']].forEach(function(par) {
+  f.id = 'nacLoginForm'; f.method = 'POST'; f.action = LINK_CENTRAL; f.target = 'nacLoginFrame'; f.style.display = 'none';
+  [['a', 'login'], ['cpf', cpf], ['senha', senha]].forEach(function(par) {
     var i = document.createElement('input'); i.type = 'hidden'; i.name = par[0]; i.value = par[1]; f.appendChild(i);
   });
-  if (naMoldura) {
-    document.body.classList.add('modo-central');
-    document.getElementById('tela').innerHTML = '<iframe class="central" name="nacCentralFrame" title="Central NAC Cível" allow="clipboard-write; clipboard-read"></iframe>' +
-      '<div class="falha-central" id="falhaCentral" style="display:none"></div>';
-    f.target = 'nacCentralFrame';
-    CENTRAL_OK = false;
-    clearTimeout(TEMPO_CENTRAL);
-    TEMPO_CENTRAL = setTimeout(function() { mostrarFalhaCentral(); }, 12000);
-  }
   document.body.appendChild(f);
   f.submit();
-  setTimeout(function() { if (f.parentNode) f.parentNode.removeChild(f); }, 1000);
+  ENTRADA.tempo = setTimeout(function() { if (ENTRADA.fase === 'enviando') formularioEntrada('Não foi possível entrar agora. Tente de novo.'); }, 25000);
+  return false;
 }
 
 /* ===================== CARTÕES DO PORTAL: feriados e processos finalizados ===================== */
@@ -473,6 +510,7 @@ function desenhar() {
 
   document.body.classList.remove('modo-central');
   document.body.classList.toggle('home', !partes[0]);
+  fecharEntrada();
 
   if (partes[0] === 'central') { abrirCentral(); return; }
 
@@ -490,13 +528,17 @@ function desenhar() {
 
   document.getElementById('tela').innerHTML = h;
   window.scrollTo(0, 0);
-  if (!partes[0]) { iniciarCartoesHome(); lgIniciar(); }
+  if (!partes[0]) iniciarCartoesHome();
 }
 
 window.addEventListener('hashchange', desenhar);
 // "Voltar ao portal" dentro da Central (que abre em moldura aqui): ela avisa e a página volta ao início.
 window.addEventListener('message', function(e) { if (e.data === 'nac-voltar-portal') { location.hash = '#/'; }
-  if (e.data && e.data.nacLogin === 'erro') { clearTimeout(TEMPO_CENTRAL); ERRO_LOGIN = String(e.data.msg || 'Não foi possível entrar.').slice(0, 200); location.hash = '#/'; }
+  var d = e.data;
+  if (d && typeof d === 'object') {
+    if (d.nacStatus && ENTRADA.fase === 'conferindo') { if (d.nacStatus === 'ok') irParaCentral(); else formularioEntrada(''); }
+    else if (d.nacLogin && ENTRADA.fase === 'enviando') { if (d.nacLogin === 'ok') irParaCentral(); else formularioEntrada(String(d.msg || 'Não foi possível entrar.').slice(0, 200)); }
+  }
   if (e.data === 'nac-central-ok') { CENTRAL_OK = true; var f = document.getElementById('falhaCentral'); if (f) f.style.display = 'none'; }
 });
 desenhar();
