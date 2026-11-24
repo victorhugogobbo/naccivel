@@ -259,7 +259,7 @@ function homeHtml() {
     tile('Orientações', 'Regras e procedimentos', '#/orientacoes', '<path d="M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/>') +
     tile('Fluxogramas', 'Procedimentos processuais', '#/fluxogramas', '<rect x="3" y="3" width="7" height="6" rx="1"/><rect x="14" y="15" width="7" height="6" rx="1"/><path d="M6.5 9v3a2 2 0 0 0 2 2H17.5v1M10 6h4a2 2 0 0 1 2 2v1"/>');
   return '<div class="duo">' +
-    '<section><h2>Acesso à Central</h2><a class="tile" href="#/central"><svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg><b>Entrar na Central</b></a></section>' +
+    '<section><h2>Acesso à Central</h2><a class="tile" href="' + esc(LINK_CENTRAL) + '"><svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg><b>Entrar na Central</b></a></section>' +
     '<section><h2>Acesso rápido</h2><div class="tiles">' + tiles + '</div></section></div>' +
     '<h2>Próximos feriados</h2><div id="cartaoFeriados" class="pcard"></div>' +
     '<h2>Processos finalizados pela equipe</h2><div id="cartaoProducao" class="pcard"><div class="vazio">Carregando...</div></div>';
