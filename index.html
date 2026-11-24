@@ -103,6 +103,10 @@
     .jan-x { width:34px; height:34px; border:0; border-radius:8px; background:rgba(255,255,255,.12); color:#fff; font-size:20px; line-height:1; cursor:pointer; }
     .jan-x:hover { background:rgba(255,255,255,.24); }
     .jan-corpo { padding:20px; }
+    .lg-chk { display:flex; align-items:center; gap:9px; margin:0 0 14px; padding:9px 12px; border-radius:9px; background:#f2f6fb; color:#475467; font-size:13px; }
+    .lg-chk.ok { background:#e8f5ee; color:#12633a; font-weight:700; }
+    .lg-chk .lg-sp { width:15px; height:15px; border:2px solid #c3cfdd; border-top-color:#082542; border-radius:50%; animation:lgg .8s linear infinite; flex:none; }
+    .lg-chk.ok .lg-sp { display:none; }
     .jan.larga { max-width:520px; }
     .jan.larga .jan-corpo { max-height:68vh; overflow-y:auto; display:flex; flex-direction:column; gap:8px; }
     .jan-item { display:block; padding:13px 15px; border:1px solid #d9e0ea; border-radius:10px; background:#fff; color:#082542; font-weight:700; font-size:14.5px; text-decoration:none; cursor:pointer; text-align:left; font-family:inherit; width:100%; }
@@ -312,7 +316,7 @@ function abrirEntrada(ev) {
     document.body.appendChild(f);
     ENTRADA.tempo = setTimeout(function() {
       if (!ENTRADA.verificando) return;
-      ENTRADA.verificando = false;
+      ENTRADA.verificando = false; lgChkFim(false);
       if (ENTRADA.modo === 'tentar') { lembrarMoldura('nao'); ENTRADA.modo = 'nao'; }
     }, ENTRADA.modo === 'tentar' ? 7000 : 15000);
   }
@@ -331,6 +335,7 @@ function formularioEntrada(erro) {
   if (!document.getElementById('janEntrada')) return;
   ENTRADA.fase = 'formulario';
   document.getElementById('janEntradaCorpo').innerHTML =
+    '<div class="lg-chk" id="lgChk" style="display:' + (ENTRADA.verificando ? 'flex' : 'none') + '"><span class="lg-sp"></span><span id="lgChkTxt">Verificando se você já está conectado...</span></div>' +
     '<form id="lgForm" onsubmit="return lgEntrar(event)" autocomplete="on">' +
     '<label for="lgCpf"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>CPF</label>' +
     '<div class="lg-campo"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>' +
@@ -354,6 +359,11 @@ function formularioEntrada(erro) {
   (ENTRADA.cpf ? document.getElementById('lgSenha') : cpf).focus();
 }
 
+function lgChkFim(ok) {
+  var c = document.getElementById('lgChk'); if (!c) return;
+  if (ok) { c.style.display = 'flex'; c.className = 'lg-chk ok'; document.getElementById('lgChkTxt').textContent = 'Acesso reconhecido. Entrando...'; }
+  else c.style.display = 'none';
+}
 function lgVer() { var s = document.getElementById('lgSenha'); if (s) s.type = s.type === 'password' ? 'text' : 'password'; }
 function lgAviso(t) { var m = document.getElementById('lgMsg'); if (!m) return; m.className = t ? 'lg-msg err' : 'lg-msg'; m.textContent = t || ''; }
 
@@ -628,7 +638,7 @@ window.addEventListener('message', function(e) { if (e.data === 'nac-voltar-port
   if (d && typeof d === 'object') {
     if (d.nacStatus && ENTRADA.verificando && ENTRADA.fase === 'formulario') {
       ENTRADA.verificando = false; clearTimeout(ENTRADA.tempo); lembrarMoldura('sim'); ENTRADA.modo = 'sim';
-      if (d.nacStatus === 'ok') irParaCentral();
+      if (d.nacStatus === 'ok') { ENTRADA.fase = 'reconhecido'; lgChkFim(true); setTimeout(function() { if (ENTRADA.fase === 'reconhecido') irParaCentral(); }, 700); } else lgChkFim(false);
     }
     else if (d.nacLogin && ENTRADA.fase === 'enviando') { if (d.nacLogin === 'ok') irParaCentral(); else formularioEntrada(String(d.msg || 'Não foi possível entrar.').slice(0, 200)); }
   }
