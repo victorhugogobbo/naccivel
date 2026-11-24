@@ -103,6 +103,12 @@
     .jan-x { width:34px; height:34px; border:0; border-radius:8px; background:rgba(255,255,255,.12); color:#fff; font-size:20px; line-height:1; cursor:pointer; }
     .jan-x:hover { background:rgba(255,255,255,.24); }
     .jan-corpo { padding:20px; }
+    .jan.larga { max-width:520px; }
+    .jan.larga .jan-corpo { max-height:68vh; overflow-y:auto; display:flex; flex-direction:column; gap:8px; }
+    .jan-item { display:block; padding:13px 15px; border:1px solid #d9e0ea; border-radius:10px; background:#fff; color:#082542; font-weight:700; font-size:14.5px; text-decoration:none; cursor:pointer; text-align:left; font-family:inherit; width:100%; }
+    .jan-item:hover { background:#f2f6fb; border-color:#d7b14a; }
+    .jan-vazio { color:#475467; font-size:14px; text-align:center; padding:18px 0; }
+    .jan-voltar { align-self:flex-start; background:none; border:0; color:#082542; font-weight:700; font-size:13.5px; cursor:pointer; padding:0 0 4px; font-family:inherit; }
     .jan-espera { display:flex; align-items:center; justify-content:center; gap:12px; padding:26px 0; color:#475467; font-size:14px; }
     .jan-corpo label { display:flex; align-items:center; gap:7px; font-size:13px; font-weight:700; color:#082542; margin:0 0 5px; }
     .jan-corpo label svg { width:15px; height:15px; stroke:#082542; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
@@ -184,7 +190,7 @@ function carregarFluxogramas() {
     delete window[nome];
     if (tag.parentNode) tag.parentNode.removeChild(tag);
     if (ok) { LISTA_FLUX = dados; ESTADO_FLUX = ''; } else { ESTADO_FLUX = 'erro'; }
-    desenhar();
+    if (JAN.tipo) desenharJanela(); else desenhar();
   };
   var tempo = setTimeout(function() { fim(false); }, 20000);
   window[nome] = function(dados) { fim(!!dados && !dados.erro, dados); };
@@ -246,9 +252,66 @@ function abrirCentral() {
   }, 3000);
 }
 
+/* ===================== JANELA DE OPÇÕES (Manuais, Orientações, Fluxogramas) ===================== */
+var JAN = { tipo: '', area: '' };
+
+function janelaOpcoes() {
+  var j = document.getElementById('janOpcoes');
+  if (j) return j;
+  j = document.createElement('div');
+  j.id = 'janOpcoes'; j.className = 'veu';
+  j.setAttribute('onclick', 'if(event.target===this)fecharJanela()');
+  j.innerHTML = '<div class="jan larga" role="dialog" aria-modal="true"><div class="jan-top"><b id="janOpcoesTitulo"></b>' +
+    '<button type="button" class="jan-x" onclick="fecharJanela()" aria-label="Fechar">×</button></div><div class="jan-corpo" id="janOpcoesCorpo"></div></div>';
+  document.body.appendChild(j);
+  return j;
+}
+
+function fecharJanela() { var j = document.getElementById('janOpcoes'); if (j) j.classList.remove('on'); JAN.tipo = ''; }
+
+function abrirJanela(tipo, ev) {
+  if (ev) ev.preventDefault();
+  JAN.tipo = tipo; JAN.area = '';
+  janelaOpcoes().classList.add('on');
+  desenharJanela();
+  if (!LISTA_FLUX && URL_FLUXOGRAMAS) carregarFluxogramas();
+  return false;
+}
+
+function janelaItens(itens) {
+  return itens.length ? itens.map(function(i) { return '<a class="jan-item" href="' + esc(i.url) + '" target="_blank" rel="noopener noreferrer">' + esc(i.nome) + '</a>'; }).join('')
+    : '<div class="jan-vazio">Nada cadastrado ainda.</div>';
+}
+
+function desenharJanela() {
+  var j = document.getElementById('janOpcoes');
+  if (!j || !JAN.tipo) return;
+  var titulo = JAN.tipo === 'manuais' ? 'Manuais' : JAN.tipo === 'orientacoes' ? 'Orientações' : 'Fluxogramas';
+  var corpo;
+  if (!URL_FLUXOGRAMAS) corpo = '<div class="jan-vazio">Lista ainda não configurada.</div>';
+  else if (!LISTA_FLUX) {
+    corpo = ESTADO_FLUX === 'erro'
+      ? '<div class="jan-vazio">Não foi possível carregar a lista agora.</div><button type="button" class="jan-item" onclick="ESTADO_FLUX=\'\';carregarFluxogramas();desenharJanela()">Tentar novamente</button>'
+      : '<div class="jan-vazio">Carregando...</div>';
+  } else if (JAN.tipo === 'fluxogramas' && !JAN.area) {
+    var areas = LISTA_FLUX._areas || [];
+    corpo = areas.length ? areas.map(function(a) { return '<button type="button" class="jan-item" onclick="JAN.area=\'' + esc(a.chave) + '\';desenharJanela()">' + esc(a.titulo) + '</button>'; }).join('')
+      : '<div class="jan-vazio">Nada cadastrado ainda.</div>';
+  } else if (JAN.tipo === 'fluxogramas') {
+    titulo = tituloArea(JAN.area);
+    corpo = '<button type="button" class="jan-voltar" onclick="JAN.area=\'\';desenharJanela()">‹ Voltar aos fluxogramas</button>' + janelaItens(LISTA_FLUX[JAN.area] || []);
+  } else {
+    corpo = janelaItens(LISTA_FLUX[JAN.tipo] || []);
+  }
+  document.getElementById('janOpcoesTitulo').textContent = titulo;
+  document.getElementById('janOpcoesCorpo').innerHTML = corpo;
+}
+
 /* ===================== PÁGINA INICIAL: botão de entrada + acesso rápido ===================== */
 function tile(nome, desc, href, icone, novaAba) {
   var alvo = novaAba ? ' target="_blank" rel="noopener noreferrer"' : '';
+  var jan = /^#\/(manuais|orientacoes|fluxogramas)$/.exec(href);
+  if (jan) alvo = ' onclick="return abrirJanela(\'' + jan[1] + '\', event)"';
   return '<a class="tile" href="' + esc(href) + '"' + alvo + '><svg viewBox="0 0 24 24">' + icone + '</svg><b>' + esc(nome) + '</b><small>' + esc(desc) + '</small></a>';
 }
 
@@ -419,6 +482,7 @@ function desenhar() {
 }
 
 window.addEventListener('hashchange', desenhar);
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') fecharJanela(); });
 // "Voltar ao portal" dentro da Central (que abre em moldura aqui): ela avisa e a página volta ao início.
 window.addEventListener('message', function(e) { if (e.data === 'nac-voltar-portal') { location.hash = '#/'; }
   if (e.data === 'nac-central-ok') { CENTRAL_OK = true; var f = document.getElementById('falhaCentral'); if (f) f.style.display = 'none'; }
