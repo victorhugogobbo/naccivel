@@ -133,7 +133,11 @@
     @keyframes lgg { to { transform:rotate(360deg); } }
     .lg-msg { display:none; margin-top:12px; padding:10px 12px; border-radius:9px; font-size:13px; line-height:1.45; }
     .lg-msg.err { display:block; background:#fef3f2; border:1px solid #fecdca; color:#b42318; }
-    .duo > section > .tile svg { width:46px; height:46px; padding:11px; box-sizing:border-box; background:#d7b14a; border-radius:50%; stroke:#082542; }
+    .duo > section > .tile .bola { width:46px; height:46px; border-radius:50%; background:#d7b14a; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+    .duo > section > .tile .bola svg { width:24px; height:24px; stroke:#082542; }
+    @keyframes entraPorta { 0% { transform:translateX(0); } 45% { transform:translateX(34px); } 46% { transform:translateX(-34px); } 100% { transform:translateX(0); } }
+    .duo > section > .tile:hover .bola svg, .duo > section > .tile:focus .bola svg { animation:entraPorta .9s ease-in-out 1; }
+    @media (prefers-reduced-motion:reduce) { .duo > section > .tile:hover .bola svg { animation:none; } }
   </style>
 </head>
 <body>
@@ -470,7 +474,7 @@ function homeHtml() {
     tile('Orientações', 'Regras e procedimentos', '#/orientacoes', '<path d="M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/>') +
     tile('Fluxogramas', 'Procedimentos processuais', '#/fluxogramas', '<rect x="3" y="3" width="7" height="6" rx="1"/><rect x="14" y="15" width="7" height="6" rx="1"/><path d="M6.5 9v3a2 2 0 0 0 2 2H17.5v1M10 6h4a2 2 0 0 1 2 2v1"/>');
   return '<div class="duo">' +
-    '<section><h2>Acesso à Central</h2><a class="tile" href="' + esc(LINK_CENTRAL) + '" onclick="return abrirEntrada(event)"><svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg><b>Entrar na Central</b></a></section>' +
+    '<section><h2>Acesso à Central</h2><a class="tile" href="' + esc(LINK_CENTRAL) + '" onclick="return abrirEntrada(event)"><span class="bola"><svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg></span><b>Entrar na Central</b></a></section>' +
     '<section><h2>Acesso rápido</h2><div class="tiles">' + tiles + '</div></section></div>' +
     '<h2>Próximos feriados</h2><div id="cartaoFeriados" class="pcard"></div>' +
     '<h2>Processos finalizados pela equipe</h2><div id="cartaoProducao" class="pcard"><div class="vazio">Carregando...</div></div>';
